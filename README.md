@@ -1,47 +1,120 @@
+# Copilot Mode Pack
 
-# GitHub Copilot Mode Pack
+Lightweight behavioral overlays for GitHub Copilot Chat. Instead of creating custom chat modes (`.chatmode.md`), you temporarily attach an `*.instructions.md` file as context to an existing built‑in mode (Ask, Edit, Agent) to shape its behavior for that conversation.
 
-A curated collection of custom GitHub Copilot chat modes designed to enhance your development workflow with specialized AI assistants for different scenarios.
+## Why & How I Use These Modes
 
-## 🎯 What's Inside
+Different cognitive goals → different pairing & tooling posture:
 
-- **Tutor Mode** - Educational assistant that teaches concepts and guides learning without providing complete solutions
-- **Assist Mode** - Development assistant for handling boilerplate, setup tasks, documentation, and tedious implementation work
-- **Hands-Off Mode** - Full-control AI engineer for complete feature implementation with built-in quality and safety guardrails
+### 1. Learning a concept or exploring an unfamiliar project
 
-## 🚀 Setup Instructions
+- Mode: Ask + Tutor
+- Editor Setup: Turn OFF inline code completions (VS Code Settings → GitHub Copilot: Inline Suggest Disabled, or run the Copilot command to disable for workspace).
+- Rationale: Forces active recall and reasoning instead of passive acceptance of AI completions; prevents "autopilot" coding where you end up with working code you don't understand.
+- Practice: Ask conceptual, architecture, and debugging questions; request small hints instead of solutions; only invoke override keyword when you intentionally want a concrete code reference.
 
-### Method 1: Global Setup (All Workspaces)
+### 2. Productive grind in a familiar stack
 
-1. Open VS Code with GitHub Copilot extension installed
-2. Open GitHub Copilot Chat panel
-3. In the mode selector area (where you see Ask, Agent, Edit), click "Configure modes"
-4. This opens your user data folder for chat modes
-5. Create a new `.chatmode.md` file (e.g., `Assist.chatmode.md`)
-6. Copy the content from one of the mode files in this repo
-7. Save the file - the mode will appear in your mode selector
+- Mode: Edit + Assist (keep completions ON).
+- Use Case: Offload repetitive / low-complexity tasks: boilerplate, documentation blocks, comments, test scaffolding, simple refactors.
+- Rationale: Maximizes velocity while you still review and control scope; avoids context switching fatigue.
+- Prompt Style: Be specific (files / functions / acceptance criteria) so Assist generates minimal, clean diffs.
 
-### Method 2: Workspace-Specific Setup
+### 3. Creative or "vibe" prototyping session
 
-1. Create a `.github/chatmodes/` folder in your project root
-2. Copy the desired `.chatmode.md` files into this folder
-3. The modes will only be available for that specific workspace
-4. Restart VS Code or reload the window to see the new modes
+- Mode: Agent + Hands-Off
+- Goal: Rapidly manifest experimental ideas / throwaway prototypes by iterating with high-level prompts.
+- Rationale: Embraces speed & exploration; you can later formalize or harden promising results using Assist mode.
+- Safeguard: Don't ship Hands-Off output to production without a manual review pass (security, performance, style).
 
-## 💡 Usage Tips
+### Benefits of This Discipline
 
-- **Tutor Mode**: Best for learning new technologies, understanding complex concepts, and developing problem-solving skills through guided explanations
-- **Assist Mode**: Perfect for generating boilerplate code, documentation, configs, and handling repetitive implementation tasks
-- **Hands-Off Mode**: Ideal for full-vibe coding sessions where you want the AI to take complete control with built-in safety guardrails and code quality enforcement
+- Preserves deep learning (less over-reliance on completion noise).
+- Channels AI strength (speed on rote tasks, broad exploration) without eroding core skill acquisition.
+- Reduces cognitive overload by aligning tool behavior with intent.
+- Improves security & correctness via explicit scope (Hands-Off) and reasoning-first (Tutor).
 
-## 🔧 Mode Selection
+## Instruction Files & Pairing
 
-Once installed, simply select your desired mode from the dropdown in the Copilot Chat panel instead of the default Ask/Agent/Edit modes.
+| Instruction File              | Pair With Base Mode | Intent                                                                                               |
+| ----------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------- |
+| `Tutor.instructions.md`     | Ask                 | Socratic tutoring, conceptual clarity, no full runnable code unless override keyword explicitly used |
+| `Assist.instructions.md`    | Edit                | Implementation helper for incremental edits, boilerplate, tests, docs                                |
+| `Hands-Off.instructions.md` | Agent               | Full execution of a clearly scoped task with security & maintainability guardrails                   |
 
-## 🤝 Contributing
+(Ensure file names match exactly those in this repository.)
 
-Feel free to submit new modes or improvements to existing ones via pull requests!
+## Where to Put Them
 
----
+You have two non-exclusive options:
 
-*Enhance your coding experience with purpose-built AI assistants* ✨
+1. In this repository (project-local) so teammates share the same rules , and rules apply only for that workspace
+2. In your user data prompts folder (e.g. `~/.config/Code/User/prompts/`) for reuse across projects
+
+## Attaching an Instruction File
+
+1. Open Copilot Chat.
+2. Select the base mode (Ask / Edit / Agent).
+3. Open the Add Context panel:
+   - UI: Click "Add context" → choose "Add instructions".
+   - Shortcut : Press the sequence shown in your environment (you mentioned: `Ctrl+A`, then `t`, then `/`). Keybindings may vary—adjust if customized.
+4. Paste the full contents of the chosen `*.instructions.md` file .
+5. Send your prompt—behavior now follows the attached instructions.
+6. To switch: remove that instruction context and attach a different file.
+
+Nothing persists globally; each chat thread can have its own active instruction file.
+
+## Override Keyword (Tutor Mode)
+
+`Tutor.instructions.md` deliberately blocks full runnable code. To allow it in a specific answer, include the override phrase in your prompt (keyword documented inside the file: "CODE REQUEST OVERRIDE"). Omit the phrase for conceptual guidance only.
+
+Example:
+
+- Concept-only: "Explain why my DFS blows the call stack."
+- With override: "CODE REQUEST OVERRIDE: Show a tail-recursive alternative." (Now Tutor may produce runnable code.)
+
+## Recommended Workflow
+
+1. Ask + Tutor: Refine requirements, validate understanding, surface risks.
+2. Edit + Assist: Generate boilerplate, tests, configs, small focused changes.
+3. Agent + Hands-Off: Execute a well-bounded implementation task end‑to‑end.
+4. (Optional) Return to Ask + Tutor for post-implementation review or refactor planning.
+
+## Quick Reference Matrix
+
+| Goal                     | Mode + Instructions          |
+| ------------------------ | ---------------------------- |
+| Clarify / learn concept  | Ask + Tutor                  |
+| Add tests / boilerplate  | Edit + Assist                |
+| Implement scoped feature | Agent + Hands-Off            |
+| Refactor planning        | Ask + Tutor, then Edit/Agent |
+
+## Troubleshooting
+
+| Symptom                                      | Likely Cause                                 | Resolution                                               |
+| -------------------------------------------- | -------------------------------------------- | -------------------------------------------------------- |
+| Copilot ignores constraints                  | File not actually attached                   | Re-attach via Add context → Add instructions            |
+| Full code appears in Tutor mode unexpectedly | Override phrase present or ambiguous request | Remove phrase; restate conceptual intent                 |
+| Hands-Off refuses to proceed                 | Scope ambiguous / missing constraints        | Provide explicit boundaries, inputs, acceptance criteria |
+| Edit mode changes too broad                  | Vague edit prompt                            | Narrow prompt; specify files/functions                   |
+
+## Security & Scope Notes
+
+- Instruction files discourage leaking secrets or using unsafe shortcuts.
+- Hands-Off mode should not invent architecture—supply scope explicitly.
+- Tutor mode enforces reasoning-before-code to reduce shallow copy/paste.
+
+## Contributing
+
+1. Open an issue describing proposed behavioral adjustment.
+2. Provide rationale and minimal diff.
+3. Keep language directive and unambiguous; avoid large unrelated edits.
+
+## Repository Structure
+
+```text
+Assist.instructions.md
+Hands-Off.instructions.md
+Tutor.instructions.md
+README.md
+```
